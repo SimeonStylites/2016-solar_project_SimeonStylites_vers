@@ -123,26 +123,43 @@ def update_object_position(space, body):
     space.coords(body.image, x - r, y - r, x + r, y + r)
 
 
+def v_max(objects):
+    v_max = 0
+    for obj in objects:
+        if obj.Vinit>v_max:
+            v_max = obj.Vinit
+    v_max = 3*v_max
+    return v_max
+    
+    
+def r_max(objects):
+    r_max = 0
+    x_star = objects[0].xinit
+    y_star = objects[0].yinit
+    for obj in objects:
+        r = ((x_star-obj.xinit)**2+(y_star-obj.yinit)**2)**0.5
+        if r>r_max:
+            r_max = r
+    r_max = 3*r_max
+    return r_max
+    
+    
 def plot_graph_vt(graphic_space, objects, planet_number, time, timestep):
-    global v_max
     # оси графика v от t
     graphic_space.create_line(0, space_height / 3 - 5, graphics_width, space_height / 3 - 5, width=2, fill="white")
     graphic_space.create_line(5, 0, 5, space_height / 3, width=2, fill='white')
     # график v от t
-    v_max = 3*objects[planet_number].Vinit
     x = 5 + time/timestep
-    y = (space_height / 3 - 5) * (1 - objects[planet_number].v_abs() / v_max)
+    y = (space_height / 3 - 5) * (1 - objects[planet_number].v_abs() / v_max(objects))
     graphic_space.create_line(x, y, x + 1, y + 1, fill='white')
 
 def plot_graph_rt(graphic_space, objects, planet_number, time, timestep):
-    global r_max
     # оси графика r от t
     graphic_space.create_line(0, space_height*2 / 3 - 5, graphics_width, space_height*2 / 3 - 5, width=2, fill="white")
     graphic_space.create_line(5, space_height / 3, 5, space_height*2 / 3, width=2, fill='white')
     # график r от t
-    r_max = 3*((objects[0].xinit-objects[planet_number].xinit)**2+(objects[0].yinit-objects[planet_number].yinit)**2)**0.5
     x = 5 + time/timestep
-    y = (space_height / 3 - 5) * (2 - objects[planet_number].r_to_star(objects[0]) / r_max)+5
+    y = (space_height / 3 - 5) * (2 - objects[planet_number].r_to_star(objects[0]) / r_max(objects))+5
     graphic_space.create_line(x, y, x + 1, y + 1, fill='white')
 
 
@@ -151,8 +168,8 @@ def plot_graph_vr(graphic_space, objects, planet_number):
     graphic_space.create_line(0, space_height - 5, graphics_width, space_height - 5, width=2, fill="white")
     graphic_space.create_line(5, space_height*2 / 3, 5, space_height, width=2, fill='white')
     # график v от r
-    x = 5 + (graphics_width - 5) * objects[planet_number].r_to_star(objects[0]) / r_max
-    y = (space_height / 3 - 5) * (3 - objects[planet_number].v_abs() / v_max)+10
+    x = 5 + (graphics_width - 5) * objects[planet_number].r_to_star(objects[0]) / r_max(objects)
+    y = (space_height / 3 - 5) * (3 - objects[planet_number].v_abs() / v_max(objects))+10
     graphic_space.create_line(x, y, x + 1, y + 1, fill='white')
 
 
