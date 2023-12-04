@@ -20,11 +20,20 @@ class Star:
     y = 0
     """Координата по оси **y**"""
 
+    xinit = 0
+    """Начальная x-координата"""
+
+    yinit = 0
+    """Начальная y-координата"""
+
     Vx = 0
     """Скорость по оси **x**"""
 
     Vy = 0
     """Скорость по оси **y**"""
+
+    Vinit = 0
+    """Начальная скорость"""
 
     Fx = 0
     """Сила по оси **x**"""
@@ -40,6 +49,9 @@ class Star:
 
     image = None
     """Изображение звезды"""
+
+    def v_abs(self):
+        return (self.Vx*self.Vx+self.Vy*self.Vy)**0.5
 
 
 class Planet:
@@ -60,11 +72,20 @@ class Planet:
     y = 0
     """Координата по оси **y**"""
 
+    xinit = 0
+    """Начальная x-координата"""
+
+    yinit = 0
+    """Начальная y-координата"""
+
     Vx = 0
     """Скорость по оси **x**"""
 
     Vy = 0
     """Скорость по оси **y**"""
+
+    Vinit = 0
+    """Начальная скорость"""
 
     Fx = 0
     """Сила по оси **x**"""
@@ -80,3 +101,11 @@ class Planet:
 
     image = None
     """Изображение планеты"""
+
+    def v_abs(self):
+        v = (self.Vx*self.Vx+self.Vy*self.Vy)**0.5
+        return v
+
+
+    def r_to_star(self, star):
+        return ((self.x-star.x)**2+(self.y-star.y)**2)**0.5

@@ -12,7 +12,6 @@ def read_space_objects_data_from_file(input_filename):
 
     **input_filename** — имя входного файла
     """
-
     objects = []
     with open(input_filename) as input_file:
         for line in input_file:
@@ -56,6 +55,9 @@ def parse_star_parameters(line, star):
         star.y = float(parameters[5])
         star.Vx = float(parameters[6])
         star.Vy = float(parameters[7])
+        star.Vinit = star.v_abs()
+        star.xinit = float(parameters[4])
+        star.yinit = float(parameters[5])
     else:
         pass
 
@@ -84,6 +86,9 @@ def parse_planet_parameters(line, planet):
         planet.y = float(parameters[5])
         planet.Vx = float(parameters[6])
         planet.Vy = float(parameters[7])
+        planet.Vinit = planet.v_abs()
+        planet.xinit = float(parameters[4])
+        planet.yinit = float(parameters[5])
     else:
         pass
 

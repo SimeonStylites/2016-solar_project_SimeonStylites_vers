@@ -9,22 +9,29 @@
 header_font = "Arial-16"
 """Шрифт в заголовке"""
 
-window_width = 800
-"""Ширина окна"""
+space_width = 600
+"""Ширина области моделирования"""
 
-window_height = 800
-"""Высота окна"""
+space_height = 600
+"""Высота области моделирования"""
+
+graphics_width = 400
+"""Ширина графиков"""
 
 scale_factor = None
 """Масштабирование экранных координат по отношению к физическим.
 Тип: float
 Мера: количество пикселей на один метр."""
 
+array_vt = []
+v_max = 1
+"""данные для графика v от t"""
+
 
 def calculate_scale_factor(max_distance):
     """Вычисляет значение глобальной переменной **scale_factor** по данной характерной длине"""
     global scale_factor
-    scale_factor = 0.4*min(window_height, window_width)/max_distance
+    scale_factor = 0.4 * min(space_height, space_width) / max_distance
     print('Scale factor:', scale_factor)
 
 
@@ -39,7 +46,7 @@ def scale_x(x):
     **x** — x-координата модели.
     """
 
-    return int(x*scale_factor) + window_width//2
+    return int(x*scale_factor) + space_width//2
 
 
 def scale_y(y):
@@ -54,7 +61,7 @@ def scale_y(y):
     **y** — y-координата модели.
     """
 
-    return -int(y*scale_factor) + window_height//2
+    return -int(y*scale_factor) + space_height//2
 
 
 def create_star_image(space, star):
@@ -110,10 +117,47 @@ def update_object_position(space, body):
     x = scale_x(body.x)
     y = scale_y(body.y)
     r = body.R
-    if x + r < 0 or x - r > window_width or y + r < 0 or y - r > window_height:
-        space.coords(body.image, window_width + r, window_height + r,
-                     window_width + 2*r, window_height + 2*r)  # положить за пределы окна
+    if x + r < 0 or x - r > space_width or y + r < 0 or y - r > space_height:
+        space.coords(body.image, space_width + r, space_height + r,
+                     space_width + 2 * r, space_height + 2 * r)  # положить за пределы окна
     space.coords(body.image, x - r, y - r, x + r, y + r)
+
+
+def plot_graph_vt(graphic_space, objects, planet_number, time, timestep):
+    global v_max
+    # оси графика v от t
+    graphic_space.create_line(0, space_height / 3 - 5, graphics_width, space_height / 3 - 5, width=2, fill="white")
+    graphic_space.create_line(5, 0, 5, space_height / 3, width=2, fill='white')
+    # график v от t
+    v_max = 3*objects[planet_number].Vinit
+    x = 5 + time/timestep
+    y = (space_height / 3 - 5) * (1 - objects[planet_number].v_abs() / v_max)
+    graphic_space.create_line(x, y, x + 1, y + 1, fill='white')
+
+def plot_graph_rt(graphic_space, objects, planet_number, time, timestep):
+    global r_max
+    # оси графика r от t
+    graphic_space.create_line(0, space_height*2 / 3 - 5, graphics_width, space_height*2 / 3 - 5, width=2, fill="white")
+    graphic_space.create_line(5, space_height / 3, 5, space_height*2 / 3, width=2, fill='white')
+    # график r от t
+    r_max = 3*((objects[0].xinit-objects[planet_number].xinit)**2+(objects[0].yinit-objects[planet_number].yinit)**2)**0.5
+    x = 5 + time/timestep
+    y = (space_height / 3 - 5) * (2 - objects[planet_number].r_to_star(objects[0]) / r_max)+5
+    graphic_space.create_line(x, y, x + 1, y + 1, fill='white')
+
+
+def plot_graph_vr(graphic_space, objects, planet_number):
+    # оси графика v от r
+    graphic_space.create_line(0, space_height - 5, graphics_width, space_height - 5, width=2, fill="white")
+    graphic_space.create_line(5, space_height*2 / 3, 5, space_height, width=2, fill='white')
+    # график v от r
+    x = 5 + (graphics_width - 5) * objects[planet_number].r_to_star(objects[0]) / r_max
+    y = (space_height / 3 - 5) * (3 - objects[planet_number].v_abs() / v_max)+10
+    graphic_space.create_line(x, y, x + 1, y + 1, fill='white')
+
+
+def clear_graphs(graphic_vt):
+    graphic_vt.create_rectangle(0, 0, graphics_width, space_height, fill='black')
 
 
 if __name__ == "__main__":

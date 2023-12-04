@@ -3,6 +3,9 @@
 
 import tkinter
 from tkinter.filedialog import *
+
+import ttk
+
 from solar_vis import *
 from solar_model import *
 from solar_input import *
@@ -12,6 +15,10 @@ perform_execution = False
 
 physical_time = 0
 """Физическое время от начала расчёта.
+Тип: float"""
+
+time_0 = 0
+"""Физическое время, с которого начинается построение графика
 Тип: float"""
 
 displayed_time = None
@@ -24,6 +31,9 @@ time_step = None
 
 space_objects = []
 """Список космических объектов."""
+
+planets_names = []
+"""Список планет"""
 
 
 def execution():
@@ -39,6 +49,11 @@ def execution():
         update_object_position(space, body)
     physical_time += time_step.get()
     displayed_time.set("%.1f" % physical_time + " seconds gone")
+    number = planets_names.index(planets_list.get())
+    if space_objects[number+1].type == 'planet' and space_objects[0].type == 'star':
+        plot_graph_vt(graphics_space, space_objects, number+1, physical_time - time_0, time_step.get())
+        plot_graph_rt(graphics_space, space_objects, number+1, physical_time - time_0, time_step.get())
+        plot_graph_vr(graphics_space, space_objects, number+1)
 
     if perform_execution:
         space.after(101 - int(time_speed.get()), execution)
@@ -74,12 +89,24 @@ def open_file_dialog():
     Считанные объекты сохраняются в глобальный список space_objects
     """
     global space_objects
+    global planets_names
     global perform_execution
+    global physical_time
+    global time_0
+    global planets_list
+    planets_names = []
     perform_execution = False
     for obj in space_objects:
         space.delete(obj.image)  # удаление старых изображений планет
     in_filename = askopenfilename(filetypes=(("Text file", ".txt"),))
     space_objects = read_space_objects_data_from_file(in_filename)
+    number_of_planets = 0
+    for obj in space_objects:
+        if obj.type == "planet":
+            number_of_planets +=1
+            planets_names.append("Planet "+str(number_of_planets))
+    planets_list['values'] = planets_names
+    
     max_distance = max([max(abs(obj.x), abs(obj.y)) for obj in space_objects])
     calculate_scale_factor(max_distance)
 
@@ -91,6 +118,9 @@ def open_file_dialog():
         else:
             raise AssertionError()
 
+    physical_time = 0
+    time_0 = 0
+
 
 def save_file_dialog():
     """Открывает диалоговое окно выбора имени файла и вызывает
@@ -99,6 +129,11 @@ def save_file_dialog():
     """
     out_filename = asksaveasfilename(filetypes=(("Text file", ".txt"),))
     write_space_objects_data_to_file(out_filename, space_objects)
+
+def update_graphs():
+     global time_0
+     time_0 = physical_time
+     clear_graphs(graphics_space)
 
 
 def main():
@@ -111,14 +146,22 @@ def main():
     global time_speed
     global space
     global start_button
+    global graphics_space
+    global planets_list
 
     print('Modelling started!')
     physical_time = 0
 
     root = tkinter.Tk()
+    # визуальная часть вверху
+    frame_visual = tkinter.Frame(root)
+    frame_visual.pack(side=tkinter.TOP)
     # космическое пространство отображается на холсте типа Canvas
-    space = tkinter.Canvas(root, width=window_width, height=window_height, bg="black")
-    space.pack(side=tkinter.TOP)
+    space = tkinter.Canvas(frame_visual, width=space_width, height=space_height, bg="black")
+    space.pack(side=tkinter.LEFT)
+    # графики отображаются справа от модели космического пространства
+    graphics_space = tkinter.Canvas(frame_visual, width=graphics_width, height=space_height, bg='black')
+    graphics_space.pack(side=tkinter.TOP)
     # нижняя панель с кнопками
     frame = tkinter.Frame(root)
     frame.pack(side=tkinter.BOTTOM)
@@ -127,7 +170,7 @@ def main():
     start_button.pack(side=tkinter.LEFT)
 
     time_step = tkinter.DoubleVar()
-    time_step.set(1)
+    time_step.set(50000)
     time_step_entry = tkinter.Entry(frame, textvariable=time_step)
     time_step_entry.pack(side=tkinter.LEFT)
 
@@ -139,6 +182,11 @@ def main():
     load_file_button.pack(side=tkinter.LEFT)
     save_file_button = tkinter.Button(frame, text="Save to file...", command=save_file_dialog)
     save_file_button.pack(side=tkinter.LEFT)
+
+    planets_list = ttk.Combobox(frame, values=planets_names)
+    planets_list.pack(side=tkinter.LEFT)
+    update_graphs_button = tkinter.Button(frame, text="Update graphs", command=update_graphs)
+    update_graphs_button.pack(side=tkinter.LEFT)
 
     displayed_time = tkinter.StringVar()
     displayed_time.set(str(physical_time) + " seconds gone")
